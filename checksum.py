@@ -14,8 +14,11 @@
 
 import sys
 import os
-import md5
 import string 
+#try: 
+#   from hashlib import md5
+#except ImportError:
+from md5 import md5
 
 usage = """
 usage: %s [package ...]
@@ -295,7 +298,7 @@ def calcSum(filePointer, filename, out=sys.stdout):
     found in the validation file. Otherwise it will remain set 
     to False if no matching hash is found in the validation file.
   """
-  m = md5.new()
+  m = md5()
   try:
     while 1:
       data = filePointer.read(8096)
