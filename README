@@ -1,0 +1,24 @@
+UTILS
+============
+
+USAGE
+-------
+
+usage: ./checksum.py [package ...]
+package ...  : one or multiple packages to download, sum, validate and authenticate
+
+Recognized parameters are:
+  tomcat-[VERSION] | apache-[VERSION] | php-[VERSION] | jk-[VERSION]
+
+Examples of valid packages are:
+  - tomcat-7.0.23
+  - apache-2.2.21
+  - php-5.3.8
+  - jk-1.2.32
+  
+Example call with arguments:
+  ./checksum.py php-5.3.8 apache-2.2.21
+
+LICENSE
+-------
+Apache 2.0 License. See included license file.
