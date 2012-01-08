@@ -12,7 +12,10 @@
  and checking the genuineness with the signature file.
 """
 
-import sys, os, md5, string 
+import sys
+import os
+import md5
+import string 
 
 usage = """
 usage: %s [package ...]
@@ -22,13 +25,13 @@ Recognized parameters are:
   tomcat-[VERSION] | apache-[VERSION] | php-[VERSION] | jk-[VERSION]
 
 Examples of valid packages are:
-  - tomcat-5.5.29
-  - apache-2.2.15
-  - php-5.2.13
-  - jk-1.2.30
+  - tomcat-7.0.23
+  - apache-2.2.21
+  - php-5.3.8
+  - jk-1.2.32
   
 Example call with arguments:
-  %s php-5.3.2 apache-2.0.63
+  %s php-5.3.8 apache-2.2.21
 """ % (sys.argv[0], sys.argv[0])
 
 
@@ -102,9 +105,9 @@ def getSum(filename, out):
     #mirrors = array(['http://apache.mirroring.de/httpd/', '', ''])
 
     if not os.path.isfile(filename):
-      os.system(wgetParamSrc + 'http://apache.mirroring.de/httpd/' + filename)
+      os.system(wgetParamSrc + 'http://www.apache.org/dist/httpd/' + filename)
     if not os.path.isfile(filename):
-      os.system(wgetParamSrc + 'http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/httpd/' + filename)
+      os.system(wgetParamSrc + 'http://apache.openmirror.de/httpd/' + filename)
     else:   # no need to download source archive because it already exists
       out.write('Using already existing source archive %s\n' % (filename))
   
@@ -120,16 +123,15 @@ def getSum(filename, out):
       out.write('Using already existing source archive %s\n' % (filename))
 
   elif package == 'jk':
-    endURL = version + '/'
     if not os.path.isfile(filename):
-      os.system(wgetParamSrc + 'http://www.apache.org/dist/tomcat/tomcat-connectors/jk/source/' + endURL + filename)
+      os.system(wgetParamSrc + 'http://www.apache.org/dist/tomcat/tomcat-connectors/jk/' + filename)
     else:   # no need to download source archive because it already exists
       out.write('Using already existing source archive %s\n' % (filename))
 
   elif package == 'php':
     if not os.path.isfile(filename):
-      print wgetParamSrc + 'http://de2.php.net/get/' + filename  + '/from/this/mirror'
-      os.system(wgetParamSrc + 'http://de2.php.net/get/' + filename  + '/from/this/mirror')
+      print wgetParamSrc + 'http://de2.php.net/get/' + filename + '/from/this/mirror -O' + filename
+      os.system(wgetParamSrc + 'http://de2.php.net/get/' + filename + '/from/this/mirror -O' + filename)
     elif not os.path.isfile(filename):
       os.system(wgetParamSrc + 'http://de2.php.net/get/' + filename  + '/from/de.php.net/mirror')
     elif not os.path.isfile(filename):
@@ -149,7 +151,7 @@ def getSum(filename, out):
     elif package == 'apache':
       os.system(wgetParamHash + 'http://www.apache.org/dist/httpd/' + checksumFile)
     elif package == 'jk':
-      os.system(wgetParamHash + 'http://www.apache.org/dist/tomcat/tomcat-connectors/jk/source/' + endURL + checksumFile)
+      os.system(wgetParamHash + 'http://www.apache.org/dist/tomcat/tomcat-connectors/jk/' + checksumFile)
     elif package == 'php':
       # php.net doesn't provide a dedicated md5 file,
       # but makes the checksums available on the download site.
@@ -171,24 +173,25 @@ def getSum(filename, out):
   # signature download
   ######################
 
-  header('downloading signature', out)
+  if package in ['tomcat', 'apache', 'jk']:
+      header('downloading signature', out)
 
-  signatureFile = filename + '.asc'
-  if package == 'tomcat':
-    os.system(wgetParamHash + 'http://www.apache.org/dist/tomcat/tomcat-' + version[1][0] + '/KEYS')
-    os.system(wgetParamHash + 'http://www.apache.org/dist/tomcat/tomcat-' + endURL + signatureFile)
-  elif package == 'apache':
-    os.system(wgetParamHash + 'http://www.apache.org/dist/httpd/KEYS')
-    os.system(wgetParamHash + 'http://www.apache.org/dist/httpd/' + signatureFile)
-  elif package == 'jk':
-    os.system(wgetParamHash + 'http://www.apache.org/dist/httpd/KEYS')
-    os.system(wgetParamHash + 'http://www.apache.org/dist/tomcat/tomcat-connectors/jk/source/' + endURL + signatureFile)
-  # PHP offers no signatures :*(
+      signatureFile = filename + '.asc'
+      if package == 'tomcat':
+        os.system(wgetParamHash + 'http://www.apache.org/dist/tomcat/tomcat-' + version[1][0] + '/KEYS')
+        os.system(wgetParamHash + 'http://www.apache.org/dist/tomcat/tomcat-' + endURL + signatureFile)
+      elif package == 'apache':
+        os.system(wgetParamHash + 'http://www.apache.org/dist/httpd/KEYS')
+        os.system(wgetParamHash + 'http://www.apache.org/dist/httpd/' + signatureFile)
+      elif package == 'jk':
+        os.system(wgetParamHash + 'http://www.apache.org/dist/httpd/KEYS')
+        os.system(wgetParamHash + 'http://www.apache.org/dist/tomcat/tomcat-connectors/jk/' + signatureFile)
+      # PHP offers no signatures :*(
 
-  # download of signature file failed
-  if not os.path.isfile(signatureFile):
-    out.write('Download of signature file %s failed!\nCheck version or mirrors!\n' % (signatureFile))
-    return 1  # bomb out!
+      # download of signature file failed
+      if not os.path.isfile(signatureFile):
+        out.write('Download of signature file %s failed!\nCheck version or mirrors!\n' % (signatureFile))
+        return 1  # bomb out!
 
   return checkPackage(filename, origParameter, out)
 
@@ -232,13 +235,18 @@ def checkPackage(filename, origParameter, out=sys.stdout):
 
   # import the KEYS file and
   # try to verify the authenticity 
-  valid = checkSig(filename, out)
+  valid = True
+  if 'php' not in filename:
+      valid = checkSig(filename, out)
+    
+  #print "filename:", filename
+  #print "valid:", valid
 
   md5File = filename + '.md5'
   signatureFile = filename + '.asc'
   os.system('rm ' + md5File)    # always remove the checksum file
-  os.system('rm KEYS')    # always remove the KEYS file
-  os.system('rm ' + signatureFile)    # always remove the signature file
+  os.system('rm -f KEYS')    # always remove the KEYS file
+  os.system('rm -f ' + signatureFile)    # always remove the signature file
 
   abort = False
 
