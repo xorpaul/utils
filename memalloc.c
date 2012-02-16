@@ -11,7 +11,7 @@ int main(int argc,char** argv)
  
  if (argc != 3)
  {
- fprintf(stderr,"Usage: memalloc bytes_to_alloc sleep_time\n");
+ fprintf(stderr,"Usage: memalloc megabytes_to_alloc sleep_time\n");
  exit(1);
  }
  
