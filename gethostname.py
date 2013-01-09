@@ -6,13 +6,13 @@ import sys
 
 def gethostname(ip_address):
   import re
-  fh = open('/etc/hosts', 'r')
+  fh = open('/tmp/hosts', 'r')
   re = re.compile(r"^(\d+\.\d+\.\d+\.\d+)[ ]+([^ ]+)")
 
   columns = {}
   for line in fh.readlines():
-    #return l
-    if not line.startswith('#') and line[0].isdigit():
+    #return line
+    if line[:1].isdigit():
       #return line
       #print re.match(line).groups()
       matches = re.match(line)
