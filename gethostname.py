@@ -4,7 +4,22 @@
 
 import sys
 
-def gethostname(ip_address):
+def gethostname_split(ip_address):
+  fh = open('/tmp/hosts', 'r')
+  columns = {}
+  for line in fh.readlines():
+    if not line.startswith('#'):
+      tokens = line.split()
+      if len(tokens) > 1:
+        columns[tokens[0]] = tokens[1]
+
+  print columns
+  try:
+    return columns[ip_address]
+  except KeyError:
+    return 'Unknown host'
+
+def gethostname_regex(ip_address):
   import re
   fh = open('/tmp/hosts', 'r')
   re = re.compile(r"^(\d+\.\d+\.\d+\.\d+)[ ]+([^ ]+)")
@@ -20,7 +35,7 @@ def gethostname(ip_address):
         values = matches.groups()
         columns[values[0]] = values[1]
 
-  #print columns
+  print columns
   try:
     return columns[ip_address].strip('\n')
   except KeyError:
@@ -28,6 +43,8 @@ def gethostname(ip_address):
 
 if len(sys.argv) < 2:
   print 'No IP provided. Looking up 127.0.0.1'
-  print gethostname('127.0.0.1')
+  print gethostname_regex('127.0.0.1')
+  print gethostname_split('127.0.0.1')
 else:
-  print gethostname(sys.argv[1])
+  print gethostname_regex(sys.argv[1])
+  print gethostname_split(sys.argv[1])
